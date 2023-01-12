@@ -5,77 +5,52 @@ using UnityEngine;
 
 public class Shapeshift : MonoBehaviour
 {
+    public List<GameObject> shapes;
+    int shapeIndex;
+    float rayLength = 20.0f;
 
-    public float rayDistance = 10.0f;
-    public LayerMask objectLayer;
+    Mesh originalMesh;
+    Renderer originalRenderer;
+    MeshFilter meshFilter;
 
-    public Mesh originalMesh;
-    public Material originalMaterial;
-
-    public Mesh desiredMesh;
-    public Material desiredMaterial;
+    Ray ray;
+    RaycastHit hit;
 
     private void Start()
     {
-        // Store a reference to the player's original mesh and material
-        originalMesh = GetComponent<MeshFilter>().mesh;
-        originalMaterial = GetComponent<Renderer>().material;
+        shapes = new List<GameObject>();
+        originalMesh = gameObject.GetComponent<MeshFilter>().mesh;
+        originalRenderer = gameObject.GetComponent<Renderer>();
+        ray = new Ray(transform.position, transform.forward);
     }
 
-    void Update()
+    private void Update()
     {
-        // Create a ray from the camera's position in the direction that the camera is facing
-        Ray ray = new Ray(gameObject.transform.position(0,-.5,0), gameObject.transform.forward);
-
-        // Perform a raycast and store the result in a variable
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit, rayDistance, objectLayer))
+        ChangeShape();
+        Debug.DrawRay(transform.position, transform.forward * rayLength);
+        if (Physics.Raycast(ray, out hit, rayLength))
         {
-            Debug.Log("You hit a " + hit.collider.name);
-
-            // Check if the player presses a button to change shape
-            if (hit.collider.CompareTag("Copiable") && Input.GetKeyDown(KeyCode.Space))
+            Debug.Log("You Hit a " + hit.collider.name);
+            if (hit.collider.gameObject.CompareTag("Copiable"))
             {
-                desiredMesh = Instantiate(hit.collider.GetComponent<MeshFilter>().mesh);
-                desiredMaterial = Instantiate(hit.collider.GetComponent<Renderer>().material);
-                ChangeShape(hit);
-            }
-
-            // Check if the player wants to return to original shape
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                ReturnToOriginalShape();
+                shapes.Add(hit.collider.gameObject);
             }
         }
     }
 
-    private void ChangeShape(RaycastHit hit)
+    void ChangeShape()
     {
-        Destroy(GetComponent<MeshFilter>());
-        Destroy(GetComponent<MeshRenderer>());
+        if (shapes != null && shapes.Count > 0 && Input.GetKeyDown(KeyCode.Space))
+        {
+            shapeIndex = (shapeIndex + 1) % shapes.Count;
+            gameObject.GetComponent<MeshFilter>().mesh = shapes[shapeIndex].GetComponent<MeshFilter>().mesh;
+            gameObject.GetComponent<Renderer>().material = shapes[shapeIndex].GetComponent<Renderer>().material;
+            gameObject.transform.localScale = shapes[shapeIndex].transform.localScale;
 
-        // Change the player's transform properties to match the object's transform properties
-        transform.position = hit.transform.position;
-        transform.rotation = hit.transform.rotation;
-        transform.localScale = hit.transform.localScale;
-
-        // Add new mesh filter and mesh renderer components using the object's mesh and material
-        MeshFilter newMeshFilter = gameObject.AddComponent<MeshFilter>();
-        newMeshFilter.mesh = desiredMesh;
-        MeshRenderer newMeshRenderer = gameObject.AddComponent<MeshRenderer>();
-        newMeshRenderer.material = desiredMaterial;
-    }
-
-    private void ReturnToOriginalShape()
-    {
-        // Remove the player's current mesh filter and mesh renderer components
-        Destroy(GetComponent<MeshFilter>());
-        Destroy(GetComponent<MeshRenderer>());
-
-        // Add the player's original mesh filter and mesh renderer components
-        MeshFilter originalMeshFilter = gameObject.AddComponent<MeshFilter>();
-        originalMeshFilter.mesh = originalMesh;
-        MeshRenderer originalMeshRenderer = gameObject.AddComponent<MeshRenderer>();
-        originalMeshRenderer.material = originalMaterial;
+        }
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            gameObject.GetComponent<MeshFilter>().mesh = originalMesh;
+        }
     }
 }

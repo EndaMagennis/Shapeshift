@@ -448,7 +448,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 322547319}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 3.28, z: -4.08}
+  m_LocalPosition: {x: 0, y: 3.501, z: -4.08}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -527,7 +527,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 539953167}
-  m_LocalRotation: {x: 0.2989194, y: -0.000000016419682, z: 0.000000005143322, w: 0.9542784}
+  m_LocalRotation: {x: 0.2989194, y: 0.000000016419675, z: -0.0000000051433195, w: 0.9542784}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -699,7 +699,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 933279312}
-  m_LocalRotation: {x: 0.31622773, y: -1e-45, z: -0, w: 0.9486833}
+  m_LocalRotation: {x: 0.31622776, y: 3e-45, z: -1e-45, w: 0.9486833}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -785,8 +785,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0.29891947, y: -0.000000032839356, z: 0.000000010286645, w: 0.95427835}
-  m_LocalPosition: {x: 0, y: 3.28, z: -4.08}
+  m_LocalRotation: {x: 0.29891947, y: 0.000000032839356, z: -0.000000010286645, w: 0.95427835}
+  m_LocalPosition: {x: 0, y: 3.501, z: -4.08}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1230,7 +1230,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1725735817}
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 0, y: 0.28, z: -0.08}
+  m_LocalPosition: {x: 0, y: 0.501, z: -0.08}
   m_LocalScale: {x: 0.4, y: 0.4, z: 0.4}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1309,14 +1309,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f0078071753ff4499641b785a6c027e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rayDistance: 10
-  objectLayer:
-    serializedVersion: 2
-    m_Bits: 1
-  originalMesh: {fileID: 0}
-  originalMaterial: {fileID: 0}
-  desiredMesh: {fileID: 0}
-  desiredMaterial: {fileID: 0}
+  shapes: []
 --- !u!33 &1725735825
 MeshFilter:
   m_ObjectHideFlags: 0
