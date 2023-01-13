@@ -13,7 +13,6 @@ public class PlayerController : MonoBehaviour
     private bool isRunning;
 
     //player movement
-    private Rigidbody playerRB;
     private CharacterController controller;
     private Transform cam;
     public float speed = 5.0f;
@@ -30,14 +29,12 @@ public class PlayerController : MonoBehaviour
         m_Position = gameObject.transform.position;
         m_Position = GameDataManager.instance.playerPosition;
         m_PlayerHealth = GameDataManager.instance.playerHealth;
-        playerRB = gameObject.GetComponent<Rigidbody>();
         controller = gameObject.GetComponent<CharacterController>();
         cam = GameObject.Find("Main Camera").GetComponent<Transform>();
         
     }
     private void Update()
     {
-        Debug.DrawRay(transform.position, transform.forward * 20.0f);
         PlayerMove();
     }
 

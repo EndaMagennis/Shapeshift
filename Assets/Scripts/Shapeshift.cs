@@ -5,52 +5,87 @@ using UnityEngine;
 
 public class Shapeshift : MonoBehaviour
 {
-    public List<GameObject> shapes;
-    int shapeIndex;
-    float rayLength = 20.0f;
+    //references to player graphical info
+    private Transform playerTransform;
+    private Renderer playerRenderer;
+    private Material playerMaterial;
+    private Mesh playerMesh;
 
-    Mesh originalMesh;
-    Renderer originalRenderer;
-    MeshFilter meshFilter;
+    //references to desired grapical info
+    private Transform desiredTransform;
+    private Material desiredMaterial;
+    private Renderer desiredRenderer;
+    private Mesh desiredMesh;
 
-    Ray ray;
-    RaycastHit hit;
+    //List to store GameObjects to access desired graphical info
+    public List<GameObject> possibleShapes = new List<GameObject>();
+    public List<GameObject> learnedShapes = new List<GameObject>();
+
+    //reference to Ray to prompt player to learn shape
+    private Ray playerRay;
+    private RaycastHit hitData;
+    private float rayDistance = 15.0f;
+    private float proximityToShape = 15.0f;
+
+
+    private void Awake()
+    {
+        playerTransform = GetComponent<Transform>();
+        playerRenderer = GetComponent<Renderer>();
+        playerMaterial = GetComponent<Material>();
+        playerMesh = GetComponent<Mesh>();
+        
+    }
 
     private void Start()
     {
-        shapes = new List<GameObject>();
-        originalMesh = gameObject.GetComponent<MeshFilter>().mesh;
-        originalRenderer = gameObject.GetComponent<Renderer>();
-        ray = new Ray(transform.position, transform.forward);
+        learnedShapes.Add(gameObject);
     }
 
     private void Update()
     {
-        ChangeShape();
-        Debug.DrawRay(transform.position, transform.forward * rayLength);
-        if (Physics.Raycast(ray, out hit, rayLength))
-        {
-            Debug.Log("You Hit a " + hit.collider.name);
-            if (hit.collider.gameObject.CompareTag("Copiable"))
-            {
-                shapes.Add(hit.collider.gameObject);
-            }
-        }
+        playerRay = new Ray(transform.position, transform.forward * rayDistance);
+        LearnShape();
+        Debug.DrawRay(transform.position, transform.forward * rayDistance);
     }
 
-    void ChangeShape()
+    void LearnShape()
     {
-        if (shapes != null && shapes.Count > 0 && Input.GetKeyDown(KeyCode.Space))
+        if(Physics.Raycast(playerRay, out hitData, rayDistance))
         {
-            shapeIndex = (shapeIndex + 1) % shapes.Count;
-            gameObject.GetComponent<MeshFilter>().mesh = shapes[shapeIndex].GetComponent<MeshFilter>().mesh;
-            gameObject.GetComponent<Renderer>().material = shapes[shapeIndex].GetComponent<Renderer>().material;
-            gameObject.transform.localScale = shapes[shapeIndex].transform.localScale;
+            float distanceToShape = Vector3.Distance(transform.position, hitData.transform.position);
+            if (hitData.collider.CompareTag("Copiable") && possibleShapes.Count < 1)
+            {
+                Debug.Log("Press 'Q' to LearnShape");
+                possibleShapes.Add(hitData.collider.gameObject);
+            }
+            if(distanceToShape>proximityToShape)
+            {
+                possibleShapes.Clear();
+            }
+            
+        }
+        if (possibleShapes.Count > 0 && Input.GetKeyDown(KeyCode.Q))
+        {
+            for (int i = 0; i < learnedShapes.Count; i++)
+            {
+                for (int j = 0; j < possibleShapes.Count; j++)
+                {
+                    if (learnedShapes.Contains(possibleShapes[i]))
+                    {
+                        Debug.Log("You already know this shape");
+                        possibleShapes.Clear();
+                    }
+                    else
+                    {
+                        learnedShapes.Add(possibleShapes[0]);
+                        possibleShapes.Clear();
+                        Debug.Log("You Learned a new Shape");
+                    }
+                }
+            }
 
         }
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            gameObject.GetComponent<MeshFilter>().mesh = originalMesh;
-        }
     }
+
 }
