@@ -5,87 +5,117 @@ using UnityEngine;
 
 public class Shapeshift : MonoBehaviour
 {
-    //references to player graphical info
-    private Transform playerTransform;
-    private Renderer playerRenderer;
-    private Material playerMaterial;
-    private Mesh playerMesh;
-
-    //references to desired grapical info
-    private Transform desiredTransform;
-    private Material desiredMaterial;
-    private Renderer desiredRenderer;
-    private Mesh desiredMesh;
-
-    //List to store GameObjects to access desired graphical info
-    public List<GameObject> possibleShapes = new List<GameObject>();
     public List<GameObject> learnedShapes = new List<GameObject>();
+    public List<GameObject> possibleShapes = new List<GameObject>();
+    [Serialize] List<GameObject> prefabs = new List<GameObject>();
 
-    //reference to Ray to prompt player to learn shape
-    private Ray playerRay;
+    public int currentShapeIndex = 0;
     private RaycastHit hitData;
+    private Ray playerRay;
     private float rayDistance = 15.0f;
-    private float proximityToShape = 15.0f;
 
+    private Transform playerTransform;
+    private MeshRenderer playerMeshRenderer;
+    private MeshFilter playerMeshFilter;
 
-    private void Awake()
-    {
-        playerTransform = GetComponent<Transform>();
-        playerRenderer = GetComponent<Renderer>();
-        playerMaterial = GetComponent<Material>();
-        playerMesh = GetComponent<Mesh>();
-        
-    }
+    private Transform learnedShapesTransform;
+    private MeshFilter learnedShapesMeshFilter;
+    private MeshRenderer learnedShapesMeshRenderer;
 
     private void Start()
     {
         learnedShapes.Add(gameObject);
+
+        playerTransform = GetComponent<Transform>();
+        playerMeshRenderer = GetComponent<MeshRenderer>();
+        playerMeshFilter = GetComponent<MeshFilter>();
+        playerRay = new Ray(transform.position, transform.forward);
     }
 
     private void Update()
     {
-        playerRay = new Ray(transform.position, transform.forward * rayDistance);
         LearnShape();
-        Debug.DrawRay(transform.position, transform.forward * rayDistance);
+        ChangeShape();
     }
 
     void LearnShape()
     {
-        if(Physics.Raycast(playerRay, out hitData, rayDistance))
+        if (Physics.Raycast(playerRay, out hitData, rayDistance))
         {
-            float distanceToShape = Vector3.Distance(transform.position, hitData.transform.position);
+            // checks if thing hit is able to be copied using the 'copiable' tag and limiting it to only be added to possible shapes once
             if (hitData.collider.CompareTag("Copiable") && possibleShapes.Count < 1)
             {
                 Debug.Log("Press 'Q' to LearnShape");
+                //adds the copiable shape to the List of possible shapes
                 possibleShapes.Add(hitData.collider.gameObject);
             }
-            if(distanceToShape>proximityToShape)
-            {
-                possibleShapes.Clear();
-            }
-            
         }
         if (possibleShapes.Count > 0 && Input.GetKeyDown(KeyCode.Q))
         {
-            for (int i = 0; i < learnedShapes.Count; i++)
+            //iterating through possible shapes
+            for (int j = 0; j < possibleShapes.Count; j++)
             {
-                for (int j = 0; j < possibleShapes.Count; j++)
+                //checking if the possible shape has already been learned
+                if (learnedShapes.Contains(possibleShapes[j]))
                 {
-                    if (learnedShapes.Contains(possibleShapes[i]))
+                    Debug.Log("You already know this shape");
+                    possibleShapes.Clear();
+                }
+                else
+                {
+                    string shapeName = possibleShapes[j].name;
+                    // use switch statement to check the name of the copiable shape
+                    switch (shapeName)
                     {
-                        Debug.Log("You already know this shape");
-                        possibleShapes.Clear();
-                    }
-                    else
-                    {
-                        learnedShapes.Add(possibleShapes[0]);
-                        possibleShapes.Clear();
-                        Debug.Log("You Learned a new Shape");
+                        case "Cube":
+                            // instantiate prefab
+                            GameObject newShape = Instantiate(Resources.Load("Assets/Prefabs/Cube.prefab")) as GameObject;
+                            // add instantiated prefab to learnedShapes list
+                            learnedShapes.Add(newShape);
+                            break;
+                        case "Sphere":
+                            // instantiate prefab
+                            newShape = Instantiate(Resources.Load("Assets/Prefabs/Sphere.prefab")) as GameObject;
+                            // add instantiated prefab to learnedShapes list
+                            learnedShapes.Add(newShape);
+                            break;
+                        case "Shpere":
+                            // instantiate prefab
+                            newShape = Instantiate(Resources.Load("Assets/Prefabs/Capsule.prefab")) as GameObject;
+                            // add instantiated prefab to learnedShapes list
+                            learnedShapes.Add(newShape);
+                            break;
+
                     }
                 }
             }
+        }
+
+    }
+    void ChangeShape()
+    {
+        if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            if (currentShapeIndex <= learnedShapes.Count - 1)
+            {
+                currentShapeIndex++;
+            }
+            else
+            {
+                currentShapeIndex = 0;
+            }
 
         }
-    }
+        if (learnedShapes.Count > 0 && Input.GetKeyDown(KeyCode.E))
+        {
+            GameObject doppleganger = Instantiate(learnedShapes[currentShapeIndex]);
 
+            gameObject.SetActive(false);
+            doppleganger.SetActive(true);
+
+            doppleganger.transform.position = transform.position;
+            doppleganger.transform.rotation = transform.rotation;
+            doppleganger.transform.localScale = transform.localScale;
+        }
+    }
 }
