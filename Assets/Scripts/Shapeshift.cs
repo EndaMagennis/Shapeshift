@@ -36,16 +36,18 @@ public class Shapeshift : MonoBehaviour
     {
         LearnShape();
         ChangeShape();
+        Debug.DrawRay(transform.position, transform.forward * rayDistance);
     }
 
     void LearnShape()
     {
         if (Physics.Raycast(playerRay, out hitData, rayDistance))
         {
+            Debug.Log("Press 'Q' to LearnShape");
+
             // checks if thing hit is able to be copied using the 'copiable' tag and limiting it to only be added to possible shapes once
-            if (hitData.collider.CompareTag("Copiable") && possibleShapes.Count < 1)
+            if (hitData.collider.CompareTag("Copiable") && possibleShapes.Count <= 1)
             {
-                Debug.Log("Press 'Q' to LearnShape");
                 //adds the copiable shape to the List of possible shapes
                 possibleShapes.Add(hitData.collider.gameObject);
             }
@@ -63,30 +65,8 @@ public class Shapeshift : MonoBehaviour
                 }
                 else
                 {
-                    string shapeName = possibleShapes[j].name;
-                    // use switch statement to check the name of the copiable shape
-                    switch (shapeName)
-                    {
-                        case "Cube":
-                            // instantiate prefab
-                            GameObject newShape = Instantiate(Resources.Load("Assets/Prefabs/Cube.prefab")) as GameObject;
-                            // add instantiated prefab to learnedShapes list
-                            learnedShapes.Add(newShape);
-                            break;
-                        case "Sphere":
-                            // instantiate prefab
-                            newShape = Instantiate(Resources.Load("Assets/Prefabs/Sphere.prefab")) as GameObject;
-                            // add instantiated prefab to learnedShapes list
-                            learnedShapes.Add(newShape);
-                            break;
-                        case "Shpere":
-                            // instantiate prefab
-                            newShape = Instantiate(Resources.Load("Assets/Prefabs/Capsule.prefab")) as GameObject;
-                            // add instantiated prefab to learnedShapes list
-                            learnedShapes.Add(newShape);
-                            break;
-
-                    }
+                    learnedShapes[j] = ObjectPool.SharedInstance.GetPooledObject();
+                    learnedShapes.Add(possibleShapes[j]);
                 }
             }
         }
