@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameDataManager : MonoBehaviour
@@ -34,11 +35,16 @@ public class GameDataManager : MonoBehaviour
         public Vector3 playerPosition;
         public bool isPlayerWorking;
     }
-
+    [System.Serializable]
     class SaveEnemyData
     {
         public Vector3 enemyPosition;
         public bool isEnemyAggressive;
+    }
+    [System.Serializable]
+    class SaveLearnedShapes
+    {
+        public List<string> shapeNames = new List<string>();
     }
 
     public void SaveGameData()
@@ -60,10 +66,19 @@ public class GameDataManager : MonoBehaviour
         System.IO.File.WriteAllText(Application.persistentDataPath + "/savefile_enemy.json", jsonEnemy);
     }
 
+    public void SaveList(List<string> shapes)
+    {
+        SaveLearnedShapes learnedShapes = new SaveLearnedShapes();
+        learnedShapes.shapeNames = shapes;
+        string jsonKnownShapes = JsonUtility.ToJson(learnedShapes);
+        System.IO.File.WriteAllText(Application.persistentDataPath + "/savefile_shapes.json", jsonKnownShapes);
+    }
+
     public void LoadGameData()
     {
         string pathPlayer = Application.persistentDataPath + "/savefile_player.json";
         string pathEnemy = Application.persistentDataPath + "/savefile_enemy.json";
+        string pathKnownShapes = Application.persistentDataPath + "/savefile_shapes.json";
 
         if (System.IO.File.Exists(pathPlayer) && System.IO.File.Exists(pathEnemy))
         {
@@ -81,7 +96,12 @@ public class GameDataManager : MonoBehaviour
             enemyData.isEnemyAggressive = isEnemyAggressive;
         }
 
+        if (System.IO.File.Exists(pathKnownShapes))
+        {
+            string jsonShapes = System.IO.File.ReadAllText(pathKnownShapes);
 
+            SaveLearnedShapes learnedShapes = JsonUtility.FromJson<SaveLearnedShapes>(jsonShapes);
+        }
     }
 
 }

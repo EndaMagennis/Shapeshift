@@ -1,3 +1,4 @@
+using Cinemachine;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -5,9 +6,11 @@ using UnityEngine;
 
 public class Shapeshift : MonoBehaviour
 {
+    public CinemachineFreeLook mainCamera;
+    public PlayerController playerController;
     public List<GameObject> learnedShapes = new List<GameObject>();
-    public List<GameObject> possibleShapes = new List<GameObject>();
-    [Serialize] List<GameObject> prefabs = new List<GameObject>();
+    public List<string> learnedShapesNames = new List<string>();
+    public string shapeName;
 
     public int currentShapeIndex = 0;
     private RaycastHit hitData;
@@ -15,8 +18,8 @@ public class Shapeshift : MonoBehaviour
     private float rayDistance = 15.0f;
 
     private Transform playerTransform;
-    private MeshRenderer playerMeshRenderer;
-    private MeshFilter playerMeshFilter;
+    public MeshRenderer playerMeshRenderer;
+    public MeshFilter playerMeshFilter;
 
     private Transform learnedShapesTransform;
     private MeshFilter learnedShapesMeshFilter;
@@ -25,11 +28,14 @@ public class Shapeshift : MonoBehaviour
     private void Start()
     {
         learnedShapes.Add(gameObject);
+        learnedShapesNames.Add(gameObject.name);
 
         playerTransform = GetComponent<Transform>();
         playerMeshRenderer = GetComponent<MeshRenderer>();
         playerMeshFilter = GetComponent<MeshFilter>();
         playerRay = new Ray(transform.position, transform.forward);
+        playerController = GetComponent<PlayerController>();
+        mainCamera = GameObject.Find("Third Person Camera").GetComponent<CinemachineFreeLook>();
     }
 
     private void Update()
@@ -41,36 +47,24 @@ public class Shapeshift : MonoBehaviour
 
     void LearnShape()
     {
-        if (Physics.Raycast(playerRay, out hitData, rayDistance))
+        //checking Hit data
+        if (Physics.Raycast(transform.position, transform.forward, out hitData,  rayDistance))
         {
-            Debug.Log("Press 'Q' to LearnShape");
-
-            // checks if thing hit is able to be copied using the 'copiable' tag and limiting it to only be added to possible shapes once
-            if (hitData.collider.CompareTag("Copiable") && possibleShapes.Count <= 1)
+            if(hitData.collider.CompareTag("Copiable") && !learnedShapesNames.Contains(hitData.collider.gameObject.name))
             {
-                //adds the copiable shape to the List of possible shapes
-                possibleShapes.Add(hitData.collider.gameObject);
-            }
-        }
-        if (possibleShapes.Count > 0 && Input.GetKeyDown(KeyCode.Q))
-        {
-            //iterating through possible shapes
-            for (int j = 0; j < possibleShapes.Count; j++)
-            {
-                //checking if the possible shape has already been learned
-                if (learnedShapes.Contains(possibleShapes[j]))
-                {
-                    Debug.Log("You already know this shape");
-                    possibleShapes.Clear();
-                }
-                else
-                {
-                    learnedShapes[j] = ObjectPool.SharedInstance.GetPooledObject();
-                    learnedShapes.Add(possibleShapes[j]);
+                Debug.Log("Press 'Q' to Learn Shape");
+                if (Input.GetKeyDown(KeyCode.Q))
+                {                    
+                    learnedShapes.Add(hitData.collider.gameObject);
+                    learnedShapesNames.Add(hitData.collider.gameObject.name);
+                    GameDataManager.instance.SaveList(learnedShapesNames);
                 }
             }
+            else
+            {
+                Debug.Log("You already know this shape!");
+            }
         }
-
     }
     void ChangeShape()
     {
@@ -84,18 +78,54 @@ public class Shapeshift : MonoBehaviour
             {
                 currentShapeIndex = 0;
             }
-
         }
-        if (learnedShapes.Count > 0 && Input.GetKeyDown(KeyCode.E))
+        
+        if (Input.GetKeyDown(KeyCode.E))
         {
-            GameObject doppleganger = Instantiate(learnedShapes[currentShapeIndex]);
+            //trying to create a data persistece for learned shapes so that each instance of newPlayer will have that knowledge
+           GameDataManager.instance.SaveList(learnedShapesNames);
+           GameDataManager.instance.LoadGameData();
+           
+            GameObject selectedShape = learnedShapes[currentShapeIndex];
+            string shapeName = selectedShape.name;
 
-            gameObject.SetActive(false);
-            doppleganger.SetActive(true);
-
-            doppleganger.transform.position = transform.position;
-            doppleganger.transform.rotation = transform.rotation;
-            doppleganger.transform.localScale = transform.localScale;
+            switch (shapeName)
+            {
+                case "Player":
+                    CreateNewPlayer("Player");
+                break;
+                case "Cube":
+                    CreateNewPlayer("Cube");
+                    break;
+                case "Sphere":
+                    CreateNewPlayer("Sphere");
+                    break;
+                case "Capsule":
+                    CreateNewPlayer("Capsule");
+                    break;
+            }
         }
+    }
+
+    void CreateNewPlayer(string shape)
+    {
+        //destroying current player and replacing it with intatiated prefabs
+        Destroy(gameObject);
+        GameObject newPlayer = Instantiate(GameObject.Find(shape), gameObject.transform.position, gameObject.transform.rotation) as GameObject;
+        newPlayer.SetActive(true);
+        //giving instantiated prefabs same abilities as OG player
+        newPlayer.AddComponent<PlayerController>();
+        newPlayer.AddComponent<CharacterController>();
+        newPlayer.AddComponent<Shapeshift>();
+        for (int i = 0; i < learnedShapesNames.Count; i++)
+        {
+            //jerry-rigged data persistence, which doesn't work
+            if (!learnedShapes.Contains(gameObject))
+            {
+                learnedShapes.Add(GameObject.Find(learnedShapesNames[i]));
+            }
+        }
+        mainCamera.LookAt = newPlayer.transform;
+        mainCamera.Follow = newPlayer.transform;
     }
 }
